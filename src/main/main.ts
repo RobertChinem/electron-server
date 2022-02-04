@@ -16,6 +16,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import createServer from './server';
 
 export default class AppUpdater {
   constructor() {
@@ -42,7 +43,7 @@ const isDevelopment =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 if (isDevelopment) {
-  require('electron-debug')();
+  // require('electron-debug')();
 }
 
 const installExtensions = async () => {
@@ -59,6 +60,8 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
+  createServer();
+
   if (isDevelopment) {
     await installExtensions();
   }
@@ -78,6 +81,7 @@ const createWindow = async () => {
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
     },
   });
 
@@ -102,7 +106,7 @@ const createWindow = async () => {
   menuBuilder.buildMenu();
 
   // Open urls in the user's browser
-  mainWindow.webContents.setWindowOpenHandler(edata => {
+  mainWindow.webContents.setWindowOpenHandler((edata) => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
